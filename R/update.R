@@ -1,6 +1,13 @@
 
+#' @importFrom dplyr transmute filter
+get_in_progress_events <- function(events, timestamp) {
+  events |> 
+    dplyr::transmute(.data$id, end_time = strptime(events$endDate, '%Y-%m-%dT%H:%M:%S.000Z', tz = 'UTC')) |> 
+    dplyr::filter(.data$end_time > timestamp)
+}
+
 #' @importFrom valorantr get_events
-#' @importFrom dplyr filter all_equal
+#' @importFrom dplyr filter bind_rows
 #' @importFrom rlang .data
 #' @noRd
 update_events <- function(event_regexpr = 'VALORANT Champions', timestamp, releases = NULL) {
@@ -18,17 +25,37 @@ update_events <- function(event_regexpr = 'VALORANT Champions', timestamp, relea
     valorant_new_release(tag = 'events')
   } else {
     
-    events_have_been_updated <- dplyr::all_equal(
-      events,
-      old_events
-    )
+    completely_new_event_ids <- setdiff(events$id, old_events$id)
+    completely_new_events_have_been_identified <- length(completely_new_event_ids) > 0
+    
+    completely_new_events <- if (isTRUE(completely_new_events_have_been_identified)) {
+      events |> dplyr::filter(id %in% completely_new_event_ids)
+    } else {
+      data.frame()
+    }
+    
+    shared_event_ids <- intersect(events$id, old_events$id)
+    shared_events_have_been_identified <- length(shared_event_ids) > 0
+    
+    shared_and_in_progress_events <-if (isTRUE(shared_events_have_been_identified)) {
+       events |> 
+        dplyr::filter(.data$id %in% shared_event_ids) |> 
+        get_in_progress_events(timestamp = timestamp)
+    } else {
+      data.frame()
+    }
+    
+    new_events <- dplyr::bind_rows(completely_new_events, shared_and_in_progress_events)
+    events_have_been_updated <- nrow(new_events) > 0
     
     if (isFALSE(events_have_been_updated)) {
       return(old_events)
     } else {
-      ## TODO: This should be two steps. 1. Check and overwrite in progress events. 2. appends new events
+      events <- dplyr::bind_rows(
+        new_events,
+        events |> dplyr::filter(!(.data$id %in% new_events$id))
+      )
     }
-
   }
   
   events <- valorant_write(events, tag = 'events', timestamp = timestamp)
@@ -58,10 +85,7 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = getOpt
     
   } else {
     
-    in_progress_events <- events |> 
-      dplyr::transmute(.data$id, end_time = strptime(events$endDate, '%Y-%m-%dT%H:%M:%S.000Z', tz = 'UTC')) |> 
-      dplyr::filter(.data$end_time > timestamp)
-    
+    in_progress_events <- get_in_progress_events(events, timestamp = timestamp)
     events_are_in_progress <- nrow(in_progress_events) > 0
     
     if (isFALSE(events_are_in_progress)) {

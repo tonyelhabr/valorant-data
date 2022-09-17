@@ -1,24 +1,34 @@
 
 #' @importFrom valorantr get_events
 #' @importFrom dplyr filter all_equal
-#' @importFrom piggyback pb_releases
+#' @importFrom rlang .data
+#' @noRd
 update_events <- function(event_regexpr = 'VALORANT Champions', timestamp, releases = NULL) {
+  
+  release_exists <- valorant_release_exists(tag = 'events', releases = releases)
+  
+  if (isTRUE(release_exists)) {
+    old_events <- valorant_read('events')
+  }
   
   events <- valorantr::get_events(event_regexpr) |>
     dplyr::filter(grepl(event_regexpr, .data$name))
   
-  release_exists <- valorant_release_exists(tag = 'events', releases = releases)
   if (isFALSE(release_exists)) {
     valorant_new_release(tag = 'events')
   } else {
-    old_events <- valorant_read('events')
+    
     events_have_been_updated <- dplyr::all_equal(
       events,
       old_events
     )
+    
     if (isFALSE(events_have_been_updated)) {
       return(old_events)
+    } else {
+      ## TODO: This should be two steps. 1. Check and overwrite in progress events. 2. appends new events
     }
+
   }
   
   events <- valorant_write(events, tag = 'events', timestamp = timestamp)
@@ -28,8 +38,9 @@ update_events <- function(event_regexpr = 'VALORANT Champions', timestamp, relea
 #' @importFrom purrr map_dfr
 #' @importFrom valorantr get_series
 #' @importFrom dplyr transmute filter
-#' @importFrom lubridate ymd_hms
-update_series <- function(events, timestamp, releases = NULL, overwrite = FALSE) {
+#' @importFrom rlang .data
+#' @noRd
+update_series <- function(events, timestamp, releases = NULL, overwrite = getOption('valorant.data.ovewrite', default = FALSE)) {
   
   release_exists <- valorant_release_exists(tag = 'series', releases = releases)
   
@@ -48,7 +59,7 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = FALSE)
   } else {
     
     in_progress_events <- events |> 
-      dplyr::transmute(.data$id, end_time = lubridate::ymd_hms(.data$endDate)) |> 
+      dplyr::transmute(.data$id, end_time = strptime(events$endDate, '%Y-%m-%dT%H:%M:%S.000Z', tz = 'UTC')) |> 
       dplyr::filter(.data$end_time > timestamp)
     
     events_are_in_progress <- nrow(in_progress_events) > 0
@@ -60,7 +71,14 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = FALSE)
     } else {
       
       new_series <- in_progress_events$id |> purrr::map_dfr(valorantr::get_series)
-      new_series_ids <- setdiff(series$id, old_series$id)
+      new_series_ids <- setdiff(new_series$id, old_series$id)
+      
+      new_series_have_occurred <- length(new_series_ids) > 0
+      
+      if (isFALSE(new_series_have_occurred)) {
+        return(old_series)
+      }
+      
       new_series <- new_series |> dplyr::filter(.data$id %in% new_series_ids)
       series <- dplyr::bind_rows(new_series, old_series)
       
@@ -72,13 +90,10 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = FALSE)
   series
 }
 
-#' Update matches
-#' 
-#' This will not work properly for in-progress series since it checks for the completion of series.
-#' 
 #' @importFrom valorantr get_matches
 #' @importFrom purrr map pluck flatten_int
-update_matches <- function(series, timestamp, releases = NULL) {
+#' @noRd
+update_matches <- function(series, timestamp, releases = NULL, overwrite = getOption('valorant.data.ovewrite', default = FALSE)) {
   
   release_exists <- valorant_release_exists(tag = 'matches', releases = releases)
   
@@ -90,36 +105,30 @@ update_matches <- function(series, timestamp, releases = NULL) {
     old_matches <- valorant_read('matches')
   }
   
-  series_timestamp <- attr(series, 'timestamp')
   if (isFALSE(release_exists)) {
     
     valorant_new_release(tag = 'matches')
     
   } else {
     
-    # series_have_been_updated <- timestamp <= series_timestamp
-    old_match_ids <- old_matches |> 
-      purrr::map(~purrr::pluck(.x, 'matches', 'id')) |> 
+    old_series_ids <- old_matches |> 
+      purrr::map(~purrr::pluck(.x, 'matches', 'seriesId')) |> 
       purrr::flatten_int() |> 
       unique()
     
-    match_ids <- series |> 
-      purrr::pluck('matches') |> 
-      purrr::map(~purrr::pluck(.x, 'id')) |>
-      purrr::flatten_int() |> 
-      unique()
+    series_ids <- unique(series$id)
     
-    new_match_ids <- setdiff(match_ids, old_match_ids)
-    new_matches_hav_occurred <- length(new_match_ids) > 0
+    new_series_ids <- setdiff(series_ids, old_series_ids)
+    new_series_have_occurred <- length(new_series_ids) > 0
     
-    if (isFALSE(new_match_ids)) {
+    if (isFALSE(new_series_have_occurred)) {
       
       return(old_matches)
       
     } else {
  
-      new_matches <- new_match_ids |> purrr::map(valorantr::get_matches)
-      matches <- dplyr::bind_rows(new_matches, old_matches)
+      new_matches <- new_series_ids |> purrr::map(valorantr::get_matches)
+      matches <- append(new_matches, old_matches)
       
     }
     
@@ -129,11 +138,52 @@ update_matches <- function(series, timestamp, releases = NULL) {
   matches
 }
 
-#' @importFrom purrr map pluck flatten_int
-update_match_details <- function(matches, timestamp, releases = NULL) {
+#' @importFrom valorantr get_match_details
+#' @importFrom purrr map pluck flatten_int map_int
+#' @noRd
+update_match_details <- function(matches, timestamp, releases = NULL, overwrite = getOption('valorant.data.ovewrite', default = FALSE)) {
+  
+  release_exists <- valorant_release_exists(tag = 'match_details', releases = releases)
+  
   match_ids <- matches |> 
     purrr::map(~purrr::pluck(.x, 'matches', 'id')) |> 
     purrr::flatten_int() |> 
     unique()
-  match_details <- match_ids |> purrr::map(get_match_details)
+  
+  if (isTRUE(overwrite) | isFALSE(release_exists)) {
+    match_details <- match_ids |> purrr::map(valorantr::get_match_details)
+  }
+  
+  if (isTRUE(release_exists)) {
+    old_match_details <- valorant_read('match_details')
+  }
+  
+  if (isFALSE(release_exists)) {
+    
+    valorant_new_release(tag = 'match_details')
+    
+  } else {
+
+    old_match_ids <- old_match_details |> 
+      purrr::map_int(~purrr::pluck(.x, 'id')) |> 
+      unique()
+
+    new_match_ids <- setdiff(match_ids, old_match_ids)
+    new_matches_have_occurred <- length(new_match_ids) > 0
+    
+    if (isFALSE(new_matches_have_occurred)) {
+      
+      return(old_match_details)
+      
+    } else {
+      
+      new_match_details <- new_match_ids |> purrr::map(valorantr::get_match_details)
+      match_details <- append(new_match_details, old_match_details)
+      
+    }
+    
+  }
+  
+  match_details <- valorant_write(match_details, tag = 'match_details', timestamp = timestamp)
+  match_details
 }

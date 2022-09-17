@@ -12,11 +12,15 @@ Depends:
     R (>= 4.1.0)
 Imports: 
     dplyr,
-    lubridate,
     purrr,
     qs,
     curl,
-    jsonlite
+    jsonlite,
+    valorantr,
+    piggyback,
+    rlang
+Suggests:
+    pkgload
 Remotes:
     tonyelhabr/valorantr,
     ropensci/piggyback

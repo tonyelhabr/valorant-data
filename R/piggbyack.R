@@ -2,6 +2,7 @@
 #' @importFrom curl curl_fetch_memory
 #' @importFrom qs qdeserialize
 #' @source <https://github.com/nflverse/nflreadr/blob/main/R/from_url.R#L185>
+#' @noRd
 qs_from_url <- function(url) {
   load <- curl::curl_fetch_memory(url)
   qs::qdeserialize(load$content)
@@ -29,6 +30,7 @@ valorant_read <- function(tag) {
 }
 
 #' @importFrom piggyback pb_upload
+#' @noRd
 valorant_upload <- function(file, tag, ...) {
   piggyback::pb_upload(
     file,
@@ -38,12 +40,10 @@ valorant_upload <- function(file, tag, ...) {
   )
 }
 
-#' Write a timestamp for the release
-#' 
-#' Note that this is really only used for the README. The timestamp is also logged as an attribute to the release data.
-#' 
+## Note that this is really only used for the README. The timestamp is also logged as an attribute to the release data.
 #' @importFrom jsonlite toJSON
 #' @source <https://github.com/nflverse/nflverse-data/R/upload.R#L16>
+#' @noRd
 update_release_timestamp <- function(temp_dir, tag = tag, timestamp, ...){
   path <- file.path(temp_dir, 'timestamp.json')
   
@@ -58,6 +58,7 @@ update_release_timestamp <- function(temp_dir, tag = tag, timestamp, ...){
 
 
 #' @importFrom qs qsave
+#' @noRd
 valorant_write <- function(df, tag = deparse(substitute(df)), timestamp, ...) {
   temp_dir <- tempdir(check = TRUE)
   path <- file.path(temp_dir, sprintf('%s.qs', tag))
@@ -72,6 +73,7 @@ valorant_write <- function(df, tag = deparse(substitute(df)), timestamp, ...) {
 }
 
 #' @importFrom piggyback pb_new_release
+#' @noRd
 valorant_new_release <- function(tag, ...) {
   piggyback::pb_new_release(
     repo = valorant_repo,
@@ -81,11 +83,13 @@ valorant_new_release <- function(tag, ...) {
 }
 
 #' @importFrom piggyback pb_releases
+#' @noRd
 valorant_releases <- function() {
   piggyback::pb_releases(repo = valorant_repo)
 }
 
 #' @importFrom piggyback pb_releases
+#' @noRd
 valorant_release_exists <- function(tag, releases = NULL) {
   if (is.null(releases)) {
     releases <- valorant_releases()

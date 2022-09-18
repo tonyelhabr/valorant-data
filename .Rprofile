@@ -1,5 +1,3 @@
-source("renv/activate.R")
-
 base::.First.sys()
 
 path_r_profile <- '~/.Rprofile'

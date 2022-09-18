@@ -34,7 +34,7 @@ jobs:
         with:
           cache: false
           cache-version: 2
-          extra-packages: local::.
+          extra-packages: tonyelhabr/valorantr
 
       # - name: Update Valorant data
       #   run: Rscript -e 'source("scripts/update-data.R")'

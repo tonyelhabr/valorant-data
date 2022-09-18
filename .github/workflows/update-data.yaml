@@ -32,9 +32,8 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          cache: true
-          cache-version: 2
-          extra-packages: ropensci/piggyback, pkgload
+          cache: false
+          cache-version: 1
 
-      - name: Update Valorant data
-        run: Rscript -e 'source("scripts/update-data.R")'
+      # - name: Update Valorant data
+      #   run: Rscript -e 'source("scripts/update-data.R")'

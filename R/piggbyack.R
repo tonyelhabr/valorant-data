@@ -18,7 +18,7 @@ upload_valorant <- function(file, tag, .token = Sys.getenv('VALORANT_GH_TOKEN'),
 update_release_timestamp <- function(temp_dir, tag = tag, timestamp, ...){
   path <- file.path(temp_dir, 'timestamp.json')
   
-  update_time <- format(timestamp, tz = "UTC", usetz = TRUE)
+  update_time <- format(timestamp, tz = 'UTC', usetz = TRUE)
   
   list(last_updated = update_time) |>
     jsonlite::toJSON(auto_unbox = TRUE) |>

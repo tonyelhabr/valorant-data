@@ -1,11 +1,12 @@
 
 #' @importFrom piggyback pb_upload
 #' @noRd
-upload_valorant <- function(file, tag, ...) {
+upload_valorant <- function(file, tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
   piggyback::pb_upload(
     file,
     repo = valorant_repo,
     tag = tag,
+    .token = .token,
     ...
   )
 }
@@ -44,25 +45,26 @@ save_valorant <- function(df, tag = deparse(substitute(df)), timestamp, ...) {
 
 #' @importFrom piggyback pb_new_release
 #' @noRd
-release_new_valorant <- function(tag, ...) {
+release_new_valorant <- function(tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
   piggyback::pb_new_release(
     repo = valorant_repo,
     tag = tag,
+    .token = .token,
     ...
   )
 }
 
 #' @importFrom piggyback pb_releases
 #' @noRd
-get_valorant_releases <- function() {
-  piggyback::pb_releases(repo = valorant_repo)
+get_valorant_releases <- function(.token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
+  piggyback::pb_releases(repo = valorant_repo, .token = .token, ...)
 }
 
 #' @importFrom piggyback pb_releases
 #' @noRd
-valorant_release_exists <- function(tag, releases = NULL) {
+valorant_release_exists <- function(tag, ..., releases = NULL) {
   if (is.null(releases)) {
-    releases <- get_valorant_releases()
+    releases <- get_valorant_releases(...)
   }
   any(tag == releases$release_name)
 }

@@ -3,10 +3,10 @@ on:
     - cron: '29 23 * * *'
   workflow_dispatch:
 
-name: update_data
+name: update-data
 
 jobs:
-  update_data:
+  update:
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: Rscript -e 'install.packages(c("remotes", "dplyr", "purrr", "qs", "curl", "jsonlite", "rlang", "pkgload"))'
       - name: Install GitHub dependencies
-        run: Rscript -e 'remotes::install_github("tonyelhabr/valorantr", "ropensci/piggyback")'
+        run: Rscript -e 'remotes::install_github(c("tonyelhabr/valorantr", "ropensci/piggyback"))'
         
       - name: Update Valorant data
         run: Rscript -e 'source("scripts/update-data.R")'

@@ -34,7 +34,7 @@ jobs:
         with:
           cache: true
           cache-version: 2
-          extra-packages: ropensci/piggyback, pkgload, tonyelhabr/valorantr
+          extra-packages: ropensci/piggyback, pkgload
 
       - name: Update Valorant data
         run: Rscript -e 'source("scripts/update-data.R")'

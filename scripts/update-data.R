@@ -1,7 +1,7 @@
 pkgload::load_all()
 
 now <- as.POSIXlt(Sys.time(), tz = 'UTC')
-releases <- valorant_releases()
+releases <- get_valorant_releases()
 
 events <- update_events(timestamp = now, releases = releases)
 series <- update_series(events, timestamp = now, releases = releases)

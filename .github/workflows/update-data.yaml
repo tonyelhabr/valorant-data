@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: macOS-latest, r: 'release', rspm: "https://packagemanager.rstudio.com/all/latest"}
+          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
@@ -33,7 +33,8 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           cache: false
-          cache-version: 1
+          cache-version: 2
+          extra-packages: ropensci/piggyback, pkgload, tonyelhabr/valorantr
 
-      # - name: Update Valorant data
-      #   run: Rscript -e 'source("scripts/update-data.R")'
+      - name: Update Valorant data
+        run: Rscript -e 'source("scripts/update-data.R")'

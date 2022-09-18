@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: Rscript -e 'install.packages(c("remotes", "dplyr", "purrr", "qs", "curl", "jsonlite", "rlang", "pkgload"))'
       - name: Install GitHub dependencies
-        run: Rscript -e 'remotes::install_packages("tonyelhabr/valorantr", "ropensci/piggyback")'
+        run: Rscript -e 'remotes::install_github("tonyelhabr/valorantr", "ropensci/piggyback")'
         
       - name: Update Valorant data
         run: Rscript -e 'source("scripts/update-data.R")'

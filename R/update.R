@@ -56,6 +56,9 @@ update_events <- function(event_regexpr = 'VALORANT Champions', ..., timestamp, 
     if (isFALSE(events_have_been_updated)) {
       return(old_events)
     } else {
+      message(
+        paste0('Updating the following events:\n', paste0(new_events$id, collapse = '\n'))
+      )
       events <- dplyr::bind_rows(
         new_events,
         events |> dplyr::filter(!(.data$id %in% new_events$id))
@@ -104,6 +107,10 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = getOpt
         return(old_series)
       }
       
+      message(
+        paste0('Updating the following series:\n', paste0(new_series_ids, collapse = '\n'))
+      )
+      
       new_series <- new_series |> dplyr::filter(.data$id %in% new_series_ids)
       series <- dplyr::bind_rows(new_series, old_series)
       
@@ -147,6 +154,11 @@ update_matches <- function(series, timestamp, releases = NULL, overwrite = getOp
     if (isFALSE(new_series_have_occurred)) {
       return(old_matches)
     } else {
+      
+      message(
+        paste0('Updating the matches for the following series:\n', paste0(new_series_ids, collapse = '\n'))
+      )
+      
       new_matches <- new_series_ids |> purrr::map(valorantr::get_matches)
       matches <- append(new_matches, old_matches)
     }
@@ -191,6 +203,10 @@ update_match_details <- function(matches, timestamp, releases = NULL, overwrite 
     if (isFALSE(new_matches_have_occurred)) {
       return(old_match_details)
     } else {
+      
+      message(
+        paste0('Updating the details for the following matches:\n', paste0(new_match_ids, collapse = '\n'))
+      )
       
       new_match_details <- new_match_ids |> purrr::map(valorantr::get_match_details)
       match_details <- append(new_match_details, old_match_details)

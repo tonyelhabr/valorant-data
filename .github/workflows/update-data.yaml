@@ -15,10 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: ubuntu-latest, r: 'release'}
+          - {os: macOS-latest, r: 'release', rspm: "https://packagemanager.rstudio.com/all/latest"}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RSPM: ${{ matrix.config.rspm }}
       R_KEEP_PKG_SOURCE: yes
 
     steps:

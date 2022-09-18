@@ -29,18 +29,6 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
 
-      # - uses: r-lib/actions/setup-r-dependencies@v2
-      #   with:
-      #     cache: false
-      #     extra-packages: |
-      #       ropensci/piggyback
-      #       pkgload
-      #       tonyelhabr/valorantr
-      #       
-      - name: Install dependencies
-        run: Rscript -e 'install.packages(c("remotes", "dplyr", "purrr", "qs", "curl", "jsonlite", "rlang", "pkgload"))'
-      - name: Install GitHub dependencies
-        run: Rscript -e 'remotes::install_github(c("tonyelhabr/valorantr", "ropensci/piggyback"))'
-        
-      - name: Update Valorant data
-        run: Rscript -e 'source("scripts/update-data.R")'
+      - uses: r-lib/actions/setup-renv@v2
+        with:
+          cache-version: 2

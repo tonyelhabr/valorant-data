@@ -1,3 +1,5 @@
+^renv$
+^renv\.lock$
 ^valorant-data\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$

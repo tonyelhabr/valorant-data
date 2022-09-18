@@ -19,6 +19,7 @@ jobs:
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      VALORANT_GH_TOKEN: ${{ secrets.VALORANT_GH_TOKEN }}
       RSPM: ${{ matrix.config.rspm }}
       R_KEEP_PKG_SOURCE: yes
 
@@ -30,17 +31,10 @@ jobs:
           r-version: ${{ matrix.config.r }}
           use-public-rspm: true
           
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache: false
-          cache-version: 2
-          extra-packages: ropensci/piggyback
-          
-      - uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          cache: false
-          cache-version: 2
-          extra-packages: tonyelhabr/valorantr
+      - name: Install dependencies
+        run: Rscript -e 'install.packages(c("remotes", "dplyr", "purrr", "rlang", "pkgload"))'
+      - name: Install GitHub dependencies
+        run: Rscript -e 'remotes::install_packages("tonyelhabr/valorantr", "ropensci/piggyback")'
 
       - name: Update Valorant data
         run: Rscript -e 'source("scripts/update-data.R")'

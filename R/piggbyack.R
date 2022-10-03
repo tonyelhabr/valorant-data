@@ -1,12 +1,14 @@
 
 #' @importFrom piggyback pb_upload
 #' @noRd
-upload_valorant <- function(file, tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
-  piggyback::pb_upload(
+upload_valorant <- function(file, tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), overwrite = TRUE, ...) {
+  # piggyback::pb_upload(
+  .pb_upload(
     file,
     repo = valorant_repo,
     tag = tag,
     .token = .token,
+    overwrite = overwrite,
     ...
   )
 }
@@ -24,7 +26,7 @@ update_release_timestamp <- function(temp_dir, tag = tag, timestamp, ...){
     jsonlite::toJSON(auto_unbox = TRUE) |>
     writeLines(path)
   
-  upload_valorant(file = path, tag = tag, overwrite = TRUE, ...)
+  upload_valorant(file = path, tag = tag, ...)
 }
 
 
@@ -45,8 +47,9 @@ save_valorant <- function(df, tag = deparse(substitute(df)), timestamp, ...) {
 
 #' @importFrom piggyback pb_new_release
 #' @noRd
-release_new_valorant <- function(tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
-  piggyback::pb_new_release(
+release_create_valorant <- function(tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
+  # piggyback::pb_release_create(
+  .pb_release_create(
     repo = valorant_repo,
     tag = tag,
     .token = .token,
@@ -57,7 +60,12 @@ release_new_valorant <- function(tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), 
 #' @importFrom piggyback pb_releases
 #' @noRd
 get_valorant_releases <- function(.token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
-  piggyback::pb_releases(repo = valorant_repo, .token = .token, ...)
+  # piggyback::pb_releases(
+  .pb_releases(
+    repo = valorant_repo, 
+    .token = .token, 
+    ...
+  )
 }
 
 #' @importFrom piggyback pb_releases
@@ -69,3 +77,37 @@ valorant_release_exists <- function(tag, ..., releases = NULL) {
   any(tag == releases$release_name)
 }
 
+#' @importFrom piggyback pb_delete pb_release_delete
+#' @noRd
+delete_valorant <- function(tag, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
+  # piggyback::pb_delete(
+  .pb_delete(
+    repo = valorant_repo,
+    tag = tag,
+    .token = .token,
+    ...
+  )
+  # piggyback::pb_release_delete(
+  .pb_release_delete(
+    repo = valorant_repo,
+    tag = tag,
+    .token = .token
+  )
+}
+possibly_release_create_valorant <- purrr::possibly(release_create_valorant, otherwise = NULL)
+possibly_delete_valorant <- purrr::possibly(delete_valorant, otherwise = NULL)
+
+possibly_delete_and_rerelase_valorant <- function(tag, body, .token = Sys.getenv('VALORANT_GH_TOKEN'), ...) {
+  possibly_delete_valorant(
+    tag = tag,
+    .token = .token,
+    ...
+  )
+  
+  possibly_release_create_valorant(
+    tag = tag,
+    body = body,
+    .token = .token,
+    ...
+  )
+}

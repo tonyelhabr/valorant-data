@@ -34,6 +34,12 @@ events <- bind_rows(
     )
 ) |> 
   dplyr::distinct(.data$id, .keep_all = TRUE) |> 
+  dplyr::filter(
+    .data$shortName |> stringr::str_detect('Open', negate = TRUE)
+  ) |> 
+  dplyr::filter(
+    !is.na(.data$childLabel)
+  ) |> 
   dplyr::arrange(dplyr::desc(.data$endDate))
 
 events <- update_events(events, timestamp = now, releases = releases)

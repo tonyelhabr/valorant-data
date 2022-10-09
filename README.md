@@ -1,6 +1,6 @@
 # valorant data
 
-This repo has code for scraping and storing ![rib.gg](https://rib.gg) data (using [`{valorantr}`](https://github.com/tonyelhabr/valorantr)). The data is automatically pushed to Github releases at <https://github.com/tonyelhabr/valorant-data/releases>.
+This repo has code for scraping and storing ![rib.gg](https://rib.gg) data (using [`{valorantr}`](https://github.com/tonyelhabr/valorantr)). The data is automatically pushed to [Github releases](https://github.com/tonyelhabr/valorant-data/releases).
 
 | Data          | Last Updated                                                                                                                                                                                                                                                                                             |
 |:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|

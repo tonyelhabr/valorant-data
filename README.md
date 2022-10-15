@@ -1,6 +1,6 @@
 # valorant data
 
-This repo has code for scraping and storing ![rib.gg](https://rib.gg) data (using [`{valorantr}`](https://github.com/tonyelhabr/valorantr)). The data is automatically pushed to Github releases at <https://github.com/tonyelhabr/valorant-data/releases>.
+This repo has code for scraping and storing ![rib.gg](https://rib.gg) data (using [`{valorantr}`](https://github.com/tonyelhabr/valorantr)). The data is automatically pushed to [Github releases](https://github.com/tonyelhabr/valorant-data/releases).
 
 | Data          | Last Updated                                                                                                                                                                                                                                                                                             |
 |:--------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -8,5 +8,5 @@ This repo has code for scraping and storing ![rib.gg](https://rib.gg) data (usin
 | series        | [![series](https://img.shields.io/badge/dynamic/json?color=blue&label=series&query=last_updated&style=flat-square&url=https://github.com/tonyelhabr/valorant-data/releases/download/series/timestamp.json)](https://github.com/tonyelhabr/valorant-data/releases/tag/series)                             |
 | matches       | [![matches](https://img.shields.io/badge/dynamic/json?color=blue&label=matches&query=last_updated&style=flat-square&url=https://github.com/tonyelhabr/valorant-data/releases/download/matches/timestamp.json)](https://github.com/tonyelhabr/valorant-data/releases/tag/matches)                         |
 | match_details | [![match_details](https://img.shields.io/badge/dynamic/json?color=blue&label=match_details&query=last_updated&style=flat-square&url=https://github.com/tonyelhabr/valorant-data/releases/download/match_details/timestamp.json)](https://github.com/tonyelhabr/valorant-data/releases/tag/match_details) |
-| players       | [![series](https://img.shields.io/badge/dynamic/json?color=blue&label=match_details&query=last_updated&style=flat-square&url=https://github.com/tonyelhabr/valorant-data/releases/download/players/timestamp.json)](https://github.com/tonyelhabr/valorant-data/releases/tag/players)                    |
+| players       | [![players](https://img.shields.io/badge/dynamic/json?color=blue&label=players&query=last_updated&style=flat-square&url=https://github.com/tonyelhabr/valorant-data/releases/download/players/timestamp.json)](https://github.com/tonyelhabr/valorant-data/releases/tag/players)                    |
 

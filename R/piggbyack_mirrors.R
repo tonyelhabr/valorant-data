@@ -15,9 +15,9 @@
   return(r)
 }
 
-#' @importFrom gh gh
+#' @importFrom gh gh gh_token
 #' @importFrom cli cli_abort cli_warn
-.pb_releases <- function(repo, .token, verbose = getOption("piggyback.verbose", default = TRUE)) {
+.pb_releases <- function(repo, .token = gh::gh_token(), verbose = getOption("piggyback.verbose", default = TRUE)) {
   
   r <- .parse_repo(repo)
   
@@ -111,12 +111,9 @@
   return(release_assets)
 }
 
+#' @importFrom gh gh_token
 #' @importFrom lubridate as_datetime
-.pb_info <- function(
-    repo,
-    tag = NULL,
-    .token
-) {
+.pb_info <- function(repo, tag = NULL, .token = gh::gh_token()) {
   
   r <- .parse_repo(repo)
   
@@ -153,6 +150,7 @@
   return(info)
 }
 
+#' @importFrom gh gh_token
 #' @importFrom cli cli_alert_info cli_abort cli_alert_warning
 .pb_upload <- function(
     file,
@@ -161,7 +159,7 @@
     name = NULL,
     overwrite = TRUE,
     show_progress = getOption("piggyback.verbose", default = interactive()),
-    .token,
+    .token = gh::gh_token(),
     dir = NULL
 ) {
   
@@ -207,7 +205,7 @@
 #' @importFrom cli cli_warn cli_alert_info
 #' @importFrom httr progress RETRY add_headers upload_file warn_for_status
 #' @importFrom fs file_info
-#' @importFrom gh gh
+#' @importFrom gh gh gh_token
 .pb_upload_file <- function(
     file,
     repo = guess_repo(),
@@ -215,7 +213,7 @@
     name = NULL,
     overwrite = TRUE,
     show_progress = getOption("piggyback.verbose", default = interactive()),
-    .token,
+    .token = gh::gh_token(),
     dir = NULL
 ) {
   
@@ -282,6 +280,7 @@
 #' @importFrom httr RETRY add_headers http_error http_error content
 #' @importFrom glue glue
 #' @importFrom jsonlite toJSON
+#' @importFrom gh gh_token
 .pb_release_create <- function(
     repo,
     tag,
@@ -290,7 +289,7 @@
     body = "Data release",
     draft = FALSE,
     prerelease = FALSE,
-    .token
+    .token = gh::gh_token()
 ) {
   
   releases <- .pb_releases(repo = repo, .token = .token, verbose = FALSE)
@@ -339,7 +338,8 @@
 #' @importFrom cli cli_alert_success cli_abort cli_alert_success
 #' @importFrom httr RETRY add_headers http_error
 #' @importFrom glue glue
-.pb_release_delete <- function(repo, tag, .token) {
+#' @importFrom gh gh_token
+.pb_release_delete <- function(repo, tag, .token = gh::gh_token()) {
   
   releases <- .pb_releases(repo = repo, .token = .token)
   
@@ -405,8 +405,8 @@
 }
 
 #' @importFrom cli cli_warn cli_alert_info
-#' @importFrom gh gh
-.pb_delete <- function(file = NULL, repo, tag = "latest", .token) {
+#' @importFrom gh gh gh_token
+.pb_delete <- function(file = NULL, repo, tag = "latest", .token = gh::gh_token()) {
   df <- .pb_info(repo, tag, .token)
   
   if (is.null(file)) ids <- df$id

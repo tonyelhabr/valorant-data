@@ -138,7 +138,10 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = getOpt
       
       if (isTRUE(events_are_in_progress)) {
         in_progress_series <- in_progress_events$id |> purrr::map_dfr(valorantr::get_series)
-        in_progress_series_ids <- setdiff(in_progress_series$id, old_series$id)
+        in_progress_series_ids <- integer()
+        if (nrow(in_progress_series) > 0) {
+          in_progress_series_ids <- setdiff(in_progress_series$id, old_series$id)
+        }
         
         in_progress_series_have_occurred <- length(in_progress_series_ids) > 0
         
@@ -189,13 +192,21 @@ update_series <- function(events, timestamp, releases = NULL, overwrite = getOpt
     }
   }
   
-  series <- save_valorant(series, tag = 'series', timestamp = timestamp)
-  series_event_ids <- save_valorant(event_ids, tag = 'series_event_ids', timestamp = timestamp)
+  series <- save_valorant(
+    series |> dplyr::distinct(id, .keep_all = TRUE), 
+    tag = 'series', 
+    timestamp = timestamp
+  )
+  series_event_ids <- save_valorant(
+    tibble::tibble(event_id = unique(series$eventId)), 
+    tag = 'series_event_ids', 
+    timestamp = timestamp
+  )
   series
 }
 
 #' @importFrom valorantr get_matches load_valorant
-#' @importFrom purrr map pluck flatten_int possibly
+#' @importFrom purrr map pluck flatten_int possibly discard
 #' @noRd
 update_matches <- function(series, timestamp, releases = NULL, overwrite = getOption('valorant.data.overwrite', default = FALSE)) {
   
@@ -250,7 +261,14 @@ update_matches <- function(series, timestamp, releases = NULL, overwrite = getOp
     }
   }
   
-  matches <- save_valorant(matches, tag = 'matches', timestamp = timestamp)
+  matches <- matches |> 
+    purrr::discard(
+      ~is.null(purrr::pluck(.x, 'id'))
+    ) |> 
+    save_valorant(
+      tag = 'matches', 
+      timestamp = timestamp
+    )
   matches
 }
 
@@ -318,7 +336,15 @@ update_match_details <- function(matches, timestamp, releases = NULL, overwrite 
       
     }
   }
-  match_details <- save_valorant(match_details, tag = 'match_details', timestamp = timestamp)
+  
+  match_details <- match_details |> 
+    purrr::discard(
+      ~is.null(purrr::pluck(.x, 'id'))
+    ) |> 
+    save_valorant(
+      tag = 'match_details', 
+      timestamp = timestamp
+    )
   match_details
 }
 
@@ -355,12 +381,18 @@ update_players <- function(matches, timestamp, releases = NULL, overwrite = getO
     )
   }
   
-  
   possibly_get_player <- purrr::possibly(
     valorantr::get_match_details, 
     otherwise = tibble::tibble(), 
     quiet = FALSE
   )
+  
+  get_players_from_ids <- function(df) {
+    df |> 
+      dplyr::arrange(.data$player_id) |>
+      dplyr::pull(.data$player_id)  |> 
+      purrr::map_dfr(possibly_get_player)
+  }
   
   player_match_ids <- matches |> 
     pluck_match_ids()
@@ -369,10 +401,7 @@ update_players <- function(matches, timestamp, releases = NULL, overwrite = getO
     players <- matches |> 
       purrr::map_dfr(~purrr::pluck(.x, 'playerStats')) |> 
       dplyr::distinct(player_id = .data$playerId) |> 
-      dplyr::arrange(.data$player_id) |> 
-      dplyr::mutate(
-        data = purrr::map(.data$player_id, possibly_get_player)
-      )
+      get_players_from_ids()
     
     player_match_ids <- tibble::tibble(match_id = player_match_ids)
   } else {
@@ -404,8 +433,7 @@ update_players <- function(matches, timestamp, releases = NULL, overwrite = getO
       init_new_players <- matches |> 
         purrr::keep(match_ids_in_new_match_ids) |> 
         purrr::map_dfr(~purrr::pluck(.x, 'playerStats')) |> 
-        dplyr::distinct(player_id = .data$playerId) |> 
-        dplyr::arrange(.data$player_id)
+        dplyr::distinct(player_id = .data$playerId)
       
       new_player_ids <- setdiff(init_new_players$player_id, old_players$player_id)
       new_players_exist <- length(new_player_ids) > 0
@@ -416,10 +444,8 @@ update_players <- function(matches, timestamp, releases = NULL, overwrite = getO
       }
       
       new_players <- init_new_players |> 
-        dplyr::filter(.data$player_id %in% new_player_ids) |> 
-        dplyr::mutate(
-          data = purrr::map(player_id, possibly_get_player)
-        )
+        dplyr::filter(.data$player_id %in% new_player_ids) |>
+        get_players_from_ids()
       
       players <- dplyr::bind_rows(
         new_players,
